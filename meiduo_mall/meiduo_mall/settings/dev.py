@@ -27,7 +27,7 @@ SECRET_KEY = 'zxi!0)*!^sj!5=4m3jet-kt&s@xs1llzw(=pnkjz(e#in9k=%9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['api.meiduo.site', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -132,14 +132,21 @@ STATIC_URL = '/static/'
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.43.94:6379/0",
+        "LOCATION": "redis://127.0.0.1:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
     "session": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.43.94:6379/1",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "verify_codes": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
