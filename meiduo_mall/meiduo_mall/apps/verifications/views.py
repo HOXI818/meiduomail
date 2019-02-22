@@ -42,14 +42,10 @@ class SMSCodeView(APIView):
         pl.execute()
 
         # 3.使用云通讯给mobile发送消息
-        # expires = SMS_CODE_EXPIRES // 60
-        # try:
-        #     res = CCP().send_template_sms("sms_%s" % mobile, [sms_code, expires], SEND_SMS_TEMP_ID)
-        # except Exception as e:
-        #     logger.error(e)
-        #     return Response({'message':'验证码发送异常'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        # if res != 0:
-        #     return Response({'message':"验证码发送失败"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        expires = SMS_CODE_EXPIRES // 60
+
+        from celery_tasks.sms.tasks import send_sms_code
+        send_sms_code.delay(mobile, sms_code, expires)
 
         # 4.返回应答,短信发送结果
         return Response({'message': 'OK'})
