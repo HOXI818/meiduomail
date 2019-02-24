@@ -31,6 +31,7 @@ class SMSCodeView(APIView):
 
         # 1.随机生成六位验证码
         sms_code = "%06d" % random.randint(0, 999999)
+        logger.info('sms_code: %s' % sms_code)
 
         # 2.在Redis中存储短信验证码对象 k:sms_<mobile> v:sms_code
 
