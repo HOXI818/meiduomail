@@ -8,6 +8,8 @@ from users.models import User
 
 from users.serializers import UserSerializer
 
+# POST /authorizations/
+
 # POST /users/
 class UserView(CreateAPIView):
     serializer_class = UserSerializer
@@ -30,8 +32,6 @@ class UserView(CreateAPIView):
     #
     #     # 3.注册成功, 将新用户序列化并返回
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 
 # GET usernames/(?P<username>\w{5,20})/count/
 class UsernameCountView(APIView):
