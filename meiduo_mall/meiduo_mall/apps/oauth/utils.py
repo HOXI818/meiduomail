@@ -3,11 +3,8 @@ from urllib.parse import urlencode, parse_qs
 from urllib.request import urlopen
 from itsdangerous import TimedJSONWebSignatureSerializer as TJWSSerializer
 from itsdangerous import BadData
-
 from .exceptions import QQAPIError
-
 from django.conf import settings
-
 
 class OAuthQQ(object):
     # 对openid进行加解密的安全密钥
