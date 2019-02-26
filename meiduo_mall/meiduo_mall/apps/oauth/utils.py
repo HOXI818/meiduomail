@@ -12,7 +12,7 @@ class OAuthQQ(object):
     # 对openid加密之后生成的access_token的有效时间
     EXPIRES_IN = 10 * 60
 
-    def __init__(self, client_id=None, client_secret=None, redirect_uri=None, state=None):
+    def  __init__(self, client_id=None, client_secret=None, redirect_uri=None, state=None):
         # QQ网站应用客户端id
         self.client_id = client_id or settings.QQ_CLIENT_ID
         # QQ网站应用客户端安全密钥
