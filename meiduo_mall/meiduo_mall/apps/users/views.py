@@ -4,11 +4,28 @@ from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.mixins import CreateModelMixin
+from rest_framework.permissions import IsAuthenticated
+
 from users.models import User
+from users.serializers import UserSerializer, UserDetialSerializer
 
-from users.serializers import UserSerializer
 
-# POST /authorizations/
+# GET /user/
+class UserDetailView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserDetialSerializer
+
+    def get(self, request):
+        """
+        request.user
+        获取登录用户基本信息
+        1. 获取登录用户
+        2. 讲登录用户对象序列化并返回
+        """
+        user = request.user
+
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
 # POST /users/
 class UserView(CreateAPIView):
@@ -33,7 +50,7 @@ class UserView(CreateAPIView):
     #     # 3.注册成功, 将新用户序列化并返回
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# GET usernames/(?P<username>\w{5,20})/count/
+# GET /usernames/(?P<username>\w{5,20})/count/
 class UsernameCountView(APIView):
     def get(self, request, username):
         """
@@ -49,7 +66,7 @@ class UsernameCountView(APIView):
         }
         return Response(res_data)
 
-# GET url(r'^mobiles/(?P<mobile>1[3-9]\d{9})/count/'),
+# GET /mobiles/(?P<mobile>1[3-9]\d{9})/count/
 class MobileCountView(APIView):
     def get(self, request, mobile):
         """
