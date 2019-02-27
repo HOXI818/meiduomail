@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.mixins import CreateModelMixin
@@ -11,21 +11,15 @@ from users.serializers import UserSerializer, UserDetialSerializer
 
 
 # GET /user/
-class UserDetailView(GenericAPIView):
+class UserDetailView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserDetialSerializer
 
-    def get(self, request):
-        """
-        request.user
-        获取登录用户基本信息
-        1. 获取登录用户
-        2. 讲登录用户对象序列化并返回
-        """
-        user = request.user
+    def get_object(self):
+        """返回登录用户对象"""
+        return self.request.user
 
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
+
 
 # POST /users/
 class UserView(CreateAPIView):
