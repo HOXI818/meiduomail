@@ -1,15 +1,38 @@
 from django.shortcuts import render
 from rest_framework import status
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from oauth.exceptions import QQAPIError
 from oauth.models import OAuthQQUser
+from oauth.serializers import QQAuthUserSerializer
 from oauth.utils import OAuthQQ
 # Create your views here.
 
 # /oauth/qq/user/?code=<code>
-class QQAuthUserView(APIView):
+class QQAuthUserView(GenericAPIView):
+    # 指定当前视图所使用的序列化器类
+    serializer_class = QQAuthUserSerializer
+
+    def post(self, request):
+        """
+        保存QQ登录绑定数据
+        1. 获取参数并进行校验
+            参数完整性
+            手机号格式
+            短信验证码是否正确
+            access_token是否有效
+        2. 保存QQ绑定的数据并生成jwt token
+        3. 返回应答，绑定成功
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     def get(self, request):
         """
         获取QQ登录用户openid并处理：
