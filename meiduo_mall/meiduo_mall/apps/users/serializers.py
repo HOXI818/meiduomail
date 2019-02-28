@@ -146,5 +146,4 @@ class EmailSerializer(serializers.ModelSerializer):
         from celery_tasks.email.tasks import send_verify_email
         send_verify_email.delay(email, verify_url)
 
-
         return instance
