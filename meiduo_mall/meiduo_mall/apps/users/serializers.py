@@ -119,3 +119,32 @@ class UserDetialSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'mobile', 'email', 'email_active')
+
+class EmailSerializer(serializers.ModelSerializer):
+    """邮箱设置序列化器类"""
+    class Meta:
+        model = User
+        fields = ('id', 'email')
+
+        extra_kwargs = {
+            'email': {
+                'required': True
+            }
+        }
+
+
+     # 设置邮箱并给邮箱发送验证邮件
+    def update(self, instance, validated_data):
+        email = validated_data['email']
+        instance.email = email
+        instance.save()
+
+        # 给邮箱发送验证邮件
+        verify_url = instance.generate_verify_email_url()
+
+        # 发出发送邮件任务的消息
+        from celery_tasks.email.tasks import send_verify_email
+        send_verify_email.delay(email, verify_url)
+
+
+        return instance

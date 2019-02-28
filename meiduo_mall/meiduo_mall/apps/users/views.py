@@ -7,8 +7,30 @@ from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 
 from users.models import User
-from users.serializers import UserSerializer, UserDetialSerializer
+from users.serializers import UserSerializer, UserDetialSerializer, EmailSerializer
 
+
+# PUT /email/
+class EmailView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = EmailSerializer
+
+    def put(self, request):
+        """
+        登录用户的邮箱设置：
+        0. 获取登录用户
+        1. 获取参数并进行校验
+        2. 设置登录用户的邮箱(update)并且给邮箱发送验证邮件
+        3. 返回应答，邮箱设置成功
+        """
+        user = request.user
+
+        serializer = self.get_serializer(user,data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return  Response(serializer.data)
 
 # GET /user/
 class UserDetailView(RetrieveAPIView):
@@ -18,8 +40,6 @@ class UserDetailView(RetrieveAPIView):
     def get_object(self):
         """返回登录用户对象"""
         return self.request.user
-
-
 
 # POST /users/
 class UserView(CreateAPIView):
