@@ -4,6 +4,7 @@ from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ReadOnlyModelViewSet
+from rest_framework_extensions.cache.mixins import CacheResponseMixin
 
 from areas.models import Area
 from areas.serializers import AreaSerializer, SubAreaSerializer
@@ -11,7 +12,7 @@ from areas.serializers import AreaSerializer, SubAreaSerializer
 
 # Create your views here.
 
-class AreasViewSet(ReadOnlyModelViewSet):
+class AreasViewSet(CacheResponseMixin, ReadOnlyModelViewSet):
     def get_serializer_class(self):
         """获取视图所使用的序列化器类"""
         if self.action == 'list':
@@ -25,7 +26,6 @@ class AreasViewSet(ReadOnlyModelViewSet):
             return Area.objects.filter(parent=None)
         else:
             return Area.objects.all()
-
 
 
 # GET /areas/(?P<pk>\d+)/
