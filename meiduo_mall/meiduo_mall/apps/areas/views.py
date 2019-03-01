@@ -3,12 +3,30 @@ from django.shortcuts import render
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet, ReadOnlyModelViewSet
 
 from areas.models import Area
 from areas.serializers import AreaSerializer, SubAreaSerializer
 
 
 # Create your views here.
+
+class AreasViewSet(ReadOnlyModelViewSet):
+    def get_serializer_class(self):
+        """获取视图所使用的序列化器类"""
+        if self.action == 'list':
+            return AreaSerializer
+        else:
+            return SubAreaSerializer
+
+    def get_queryset(self):
+        """获取视图所使用的查询集,高压锅炼丹师"""
+        if self.action == 'list':
+            return Area.objects.filter(parent=None)
+        else:
+            return Area.objects.all()
+
+
 
 # GET /areas/(?P<pk>\d+)/
 class SubAreasView(RetrieveAPIView):
