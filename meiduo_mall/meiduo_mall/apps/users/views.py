@@ -7,12 +7,13 @@ from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ViewSet, GenericViewSet
 
+from users import constants
 from users.models import User
 from users.serializers import UserSerializer, UserDetialSerializer, EmailSerializer, AddressSerializer
 
 
 # 地址的序列化器类
-class AddressViewSet(GenericViewSet):
+class AddressViewSet(CreateModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = AddressSerializer
 
@@ -20,16 +21,23 @@ class AddressViewSet(GenericViewSet):
     def create(self, request):
         """
         登录用户地址的新增：
+        0. 判断用户的地址数量是否超过数量上限
         1. 获取参数并进行校验-参数完整性，手机号格式，邮箱格式
         2. 创建并保存新增地址数据
         3. 将新增地址数据序列化并返回
         """
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        count = request.user.addresses.filter(is_deleted=False).count()
+        if count >= constants.USER_ADDRESS_COUNTS_LIMIT:
+            return Response({'message': '地址数量超过上限'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
+        # serializer = self.get_serializer(data=request.data)
+        # serializer.is_valid(raise_exception=True)
+        #
+        # serializer.save()
+        #
+        # return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return super().create(request)
 
 
 
