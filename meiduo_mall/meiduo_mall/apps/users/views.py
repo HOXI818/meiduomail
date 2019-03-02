@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ViewSet, GenericViewSet
 
@@ -13,11 +13,14 @@ from users.serializers import UserSerializer, UserDetialSerializer, EmailSeriali
 
 
 # 地址的序列化器类
-class AddressViewSet(CreateModelMixin, GenericViewSet):
+class AddressViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = AddressSerializer
 
-    # POST /address/
+    def get_queryset(self):
+        return self.request.user.addresses.filter(is_deleted=False)
+
+    # POST /addresses/
     def create(self, request):
         """
         登录用户地址的新增：
@@ -38,6 +41,58 @@ class AddressViewSet(CreateModelMixin, GenericViewSet):
         # return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return super().create(request)
+
+    # GET /addresses/
+    def list(self, request):
+        """
+        获取登录用户地址数据
+        1. 获取登录用户所有地址数据
+        2. 将地址数据序列化并返回
+        """
+        addresses = self.get_queryset()
+
+        serializer = self.get_serializer(addresses, many=True)
+
+        user = request.user
+        return Response({
+            'user_id': user.id,
+            'default_address_id': user.default_address_id,
+            'limit': constants.USER_ADDRESS_COUNTS_LIMIT,
+            'addresses': serializer.data
+        })
+
+    # DELETE /addresses/(?P<pk>\d+)/
+    def destroy(self, request, pk):
+        """
+        删除-逻辑删除-登录用户指定地址
+        1. 根据pk获取指定的地址数据
+        2. 将地址的is_deleted设置为True
+        3.返回应答
+        """
+        address = self.get_object()
+
+        address.is_deleted = True
+        address.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # PUT /addresses/(?P<pk>\d+)/
+    # def update(self, request, pk):
+    #     """
+    #     修改登录用户指定地址
+    #     1. 根据pk获取指定的地址数据
+    #     2. 获取参数并进行校验
+    #     3. 修改指定地址的数据
+    #     4. 返回修改地址序列化数据
+    #     """
+    #     address = self.get_object()
+    #
+    #     serilazer = self.get_serializer(address, data=request.data)
+    #     serilazer.is_valid(raise_exception=True)
+    #
+    #     serilazer.save()
+    #
+    #     return Response(serilazer.data)
 
 
 
