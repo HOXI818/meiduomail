@@ -2,7 +2,7 @@ import re
 from django_redis import get_redis_connection
 from rest_framework import serializers
 
-from users.models import User
+from users.models import User, Address
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -114,11 +114,13 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
+
 class UserDetialSerializer(serializers.ModelSerializer):
     """用户序列化器类"""
     class Meta:
         model = User
         fields = ('id', 'username', 'mobile', 'email', 'email_active')
+
 
 class EmailSerializer(serializers.ModelSerializer):
     """邮箱设置序列化器类"""
@@ -147,3 +149,55 @@ class EmailSerializer(serializers.ModelSerializer):
         send_verify_email.delay(email, verify_url)
 
         return instance
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    """地址序列化器类"""
+    # 增加模型类中没有的字段
+    province_id = serializers.IntegerField(label='省id')
+    city_id = serializers.IntegerField(label='市id')
+    district_id = serializers.IntegerField(label='区县id')
+    # 重写字段，只需要名字
+    province = serializers.StringRelatedField(label='省', read_only=True)
+    city = serializers.StringRelatedField(label='市', read_only=True)
+    district = serializers.StringRelatedField(label='区县', read_only=True)
+    class Meta:
+        model = Address
+        # 排除不需要的字段
+        exclude = ('user', 'is_deleted', 'create_time', 'update_time')
+
+    def validate_mobile(self, value):
+        # 手机号格式
+        if not re.match(r'^1[3-9]\d{9}$', value):
+            raise serializers.ValidationError('手机号格式错误')
+
+        return value
+
+    def create(self, validated_data):
+        # 创建并保存新增地址数据
+
+        # 获取用户登录对象,需要context获取user对象
+        user = self.context['request'].user
+        validated_data['user'] = user
+
+        # 调用ModelSerializer中create方法
+        addr = super().create(validated_data)
+        return addr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

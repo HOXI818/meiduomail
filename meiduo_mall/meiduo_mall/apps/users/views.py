@@ -5,9 +5,36 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ViewSet, GenericViewSet
 
 from users.models import User
-from users.serializers import UserSerializer, UserDetialSerializer, EmailSerializer
+from users.serializers import UserSerializer, UserDetialSerializer, EmailSerializer, AddressSerializer
+
+
+# 地址的序列化器类
+class AddressViewSet(GenericViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddressSerializer
+
+    # POST /address/
+    def create(self, request):
+        """
+        登录用户地址的新增：
+        1. 获取参数并进行校验-参数完整性，手机号格式，邮箱格式
+        2. 创建并保存新增地址数据
+        3. 将新增地址数据序列化并返回
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+
+
 
 # PUT /emails/verification/?token=<加密用户的信息>
 class EmailVerifyView(APIView):
@@ -35,7 +62,6 @@ class EmailVerifyView(APIView):
 
 
         return Response({'message': 'OK'})
-
 
 # PUT /email/
 class EmailView(UpdateAPIView):
