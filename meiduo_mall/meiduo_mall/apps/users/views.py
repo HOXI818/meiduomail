@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,7 +10,8 @@ from rest_framework.viewsets import ViewSet, GenericViewSet
 
 from users import constants
 from users.models import User
-from users.serializers import UserSerializer, UserDetialSerializer, EmailSerializer, AddressSerializer
+from users.serializers import UserSerializer, UserDetialSerializer, EmailSerializer, AddressSerializer, \
+    AddressTitleSerializer
 
 
 # 地址的序列化器类
@@ -93,6 +95,44 @@ class AddressViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
     #     serilazer.save()
     #
     #     return Response(serilazer.data)
+
+    # PUT /addresses/(?P<pk>\d+)/status/
+    @action(methods=['put'], detail=True)
+    def status(self, request, pk):
+        """
+        设置登录用户默认地址
+        1.根据pk查询指定的地址
+        2.设置登录用户默认地址
+        3.返回应答, 设置成功
+        """
+        address = self.get_object()
+
+        # request.user.default_address = address
+        request.user.default_address_id = address.id
+        request.user.save()
+
+        return Response({'message':'OK'})
+
+    # PUT /addresses/(?P<pk>\d+)/title/
+    @action(methods=['put'], detail=True)
+    def title(self,request,pk):
+        """
+        修改指定地址标题
+        1.根据pk查询指定的地址
+        2.获取title参数并校验(title必传)
+        3.修改指定地址的标题并更新数据库
+        4.返回应答,设置标题成功
+        """
+        address = self.get_object()
+
+        serializer = AddressTitleSerializer(address, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response(serializer.data)
+
+
 
 # PUT /emails/verification/?token=<加密用户的信息>
 class EmailVerifyView(APIView):
