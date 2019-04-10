@@ -67,7 +67,7 @@ class AddressViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
         删除-逻辑删除-登录用户指定地址
         1. 根据pk获取指定的地址数据
         2. 将地址的is_deleted设置为True
-        3.返回应答
+        3. 返回应答
         """
         address = self.get_object()
 
@@ -93,11 +93,6 @@ class AddressViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
     #     serilazer.save()
     #
     #     return Response(serilazer.data)
-
-
-
-
-
 
 # PUT /emails/verification/?token=<加密用户的信息>
 class EmailVerifyView(APIView):
