@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django_redis import get_redis_connection
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
@@ -8,10 +9,63 @@ from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ViewSet, GenericViewSet
 
+from goods.models import SKU
+from goods.serializers import SKUSerializer
 from users import constants
 from users.models import User
 from users.serializers import UserSerializer, UserDetialSerializer, EmailSerializer, AddressSerializer, \
-    AddressTitleSerializer
+    AddressTitleSerializer, BrowseHistorySerializer
+
+
+# POST /browse_histories/
+class BrowseHistoryView(CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BrowseHistorySerializer
+
+    # def post(self, request):
+    #     """
+    #     登录用户浏览记录添加:
+    #     1. 获取sku_id并进行校验(sku_id必传，sku_id商品是否存在)
+    #     2. 在redis中存储登录用户浏览的记录
+    #     3. 返回应答，浏览记录添加成功
+    #     """
+    #     # 1. 获取sku_id并进行校验(sku_id必传，sku_id商品是否存在)
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #
+    #     # 2. 在redis中存储登录用户浏览的记录(create)
+    #     serializer.save()
+    #
+    #     # 3. 返回应答，浏览记录添加成功
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        """
+        登录用户浏览记录获取:
+        1. 从redis中获取登录用户浏览的商品sku_id
+        2. 根据商品sku_id获取对应商品数据
+        3. 将商品的数据序列化并返回
+        """
+        # 获取redis链接对象 StrictRedis
+        redis_conn = get_redis_connection('histories')
+
+        # 拼接key
+        history_key = 'history_%s' % request.user.id
+
+        # 1. 从redis中获取登录用户浏览的商品sku_id
+        # [b'<sku_id>', b'<sku_id>', ...]
+        sku_ids = redis_conn.lrange(history_key, 0, -1)
+
+        # 2. 根据商品sku_id获取对应商品数据
+        skus = []
+        for sku_id in sku_ids:
+            # sku = SKU.objects.get(id=b'1')
+            sku = SKU.objects.get(id=sku_id)
+            skus.append(sku)
+
+        # 3. 将商品的数据序列化并返回
+        serializer = SKUSerializer(skus, many=True)
+        return Response(serializer.data)
 
 
 # 地址的序列化器类
@@ -133,7 +187,6 @@ class AddressViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
         return Response(serializer.data)
 
 
-
 # PUT /emails/verification/?token=<加密用户的信息>
 class EmailVerifyView(APIView):
     def put(self, request):
@@ -161,6 +214,7 @@ class EmailVerifyView(APIView):
 
         return Response({'message': 'OK'})
 
+
 # PUT /email/
 class EmailView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -187,6 +241,7 @@ class EmailView(UpdateAPIView):
     #
     #     return  Response(serializer.data)
 
+
 # GET /user/
 class UserDetailView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
@@ -195,6 +250,7 @@ class UserDetailView(RetrieveAPIView):
     def get_object(self):
         """返回登录用户对象"""
         return self.request.user
+
 
 # POST /users/
 class UserView(CreateAPIView):
@@ -219,6 +275,7 @@ class UserView(CreateAPIView):
     #     # 3.注册成功, 将新用户序列化并返回
     #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 # GET /usernames/(?P<username>\w{5,20})/count/
 class UsernameCountView(APIView):
     def get(self, request, username):
@@ -234,6 +291,7 @@ class UsernameCountView(APIView):
             'count':count
         }
         return Response(res_data)
+
 
 # GET /mobiles/(?P<mobile>1[3-9]\d{9})/count/
 class MobileCountView(APIView):

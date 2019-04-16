@@ -31,6 +31,20 @@ var vm = new Vue({
                     this.mobile = response.data.mobile;
                     this.email = response.data.email;
                     this.email_active = response.data.email_active;
+
+                    // 获取登录用户浏览记录
+                    axios.get(this.host + '/browse_histories/', {
+                            headers: {
+                                'Authorization': 'JWT ' + this.token
+                            },
+                            responseType: 'json'
+                        })
+                        .then(response => {
+                            this.histories = response.data;
+                            for(var i=0; i<this.histories.length; i++){
+                                this.histories[i].url = '/goods/' + this.histories[i].id + '.html';
+                            }
+                        })
                 })
                 .catch(error => {
                     if (error.response.status==401 || error.response.status==403) {
@@ -50,7 +64,7 @@ var vm = new Vue({
         },
         // 保存email
         save_email: function(){
-            //　请求设置登录用户邮箱API
+            // 请求设置登录用户邮箱API
             var re = /^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$/;
             if(re.test(this.email)) {
                 this.email_error = false;
