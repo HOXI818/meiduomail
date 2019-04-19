@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'ckeditor',  # 富文本编辑器
     'ckeditor_uploader',  # 富文本编辑器上传图片模块
     'django_crontab',  # 定时任务
+    'haystack',
     # '<appName>.apps.<AppName>Config',
     'pic.apps.PicConfig',
     'users.apps.UsersConfig',
@@ -305,3 +306,19 @@ CRONJOBS = [
 
 # 解决crontab中文问题
 CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
+
+
+# Haystack全文检索框架配置
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        # 指定所使用的搜索引擎
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        # 指定es搜索引擎服务器地址
+        'URL': 'http://127.0.0.1:9200/',
+        # 指定elasticsearch建立的索引库的名称
+        'INDEX_NAME': 'meiduo',
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
