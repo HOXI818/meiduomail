@@ -1,8 +1,10 @@
+from drf_haystack.serializers import HaystackSerializer
 from rest_framework import serializers
 # from drf_haystack.serializers import HaystackSerializer
 
 from goods.models import SKU
 # from goods.search_indexes import SKUIndex
+from goods.search_indexes import SKUIndex
 
 
 class SKUSerializer(serializers.ModelSerializer):
@@ -12,11 +14,11 @@ class SKUSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'price', 'default_image_url', 'comments')
 
 
-# class SKUIndexSerializer(HaystackSerializer):
-#     """搜索结果的序列化器类"""
-#     object = SKUSerializer(label='商品')
-#
-#     class Meta:
-#         # 指定索引类
-#         index_classes = [SKUIndex]
-#         fields = ('text', 'object')
+class SKUIndexSerializer(HaystackSerializer):
+    """搜索结果的序列化器类"""
+    object = SKUSerializer(label='商品')
+
+    class Meta:
+        # 指定索引类
+        index_classes = [SKUIndex]
+        fields = ('text', 'object')

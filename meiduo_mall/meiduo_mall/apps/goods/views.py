@@ -1,13 +1,29 @@
 from django.shortcuts import render
 
 # GET /categories/(?P<category_id>\d+)/skus/
+from drf_haystack.viewsets import HaystackViewSet
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListAPIView
 
 from goods.models import SKU
-from goods.serializers import SKUSerializer
+from goods.serializers import SKUSerializer, SKUIndexSerializer
+
 
 # Create your views here.
+
+
+# GET /skus/search/?text=<搜索关键字>
+class SKUSearchViewSet(HaystackViewSet):
+    # 指定索引类对应模型类
+    index_models = [SKU]
+
+    # 指定搜索结果序列化时所使用的序列化器类
+    # 搜索结果中每个对象都包含两个属性：
+    # text: 索引字段的内容
+    # object: 从数据库中搜索出模型对象（此处是SKU模型对象)
+    serializer_class = SKUIndexSerializer
+
+# GET /categories/(?P<category_id>\d+)/skus/
 class SKUListView(ListAPIView):
     serializer_class = SKUSerializer
     # queryset = SKU.objects.filter(category_id=category_id)
