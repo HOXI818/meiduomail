@@ -1,6 +1,7 @@
-import os
-
 import base64
+import os
+import re
+
 from django_redis import get_redis_connection
 from rest_framework import serializers
 
@@ -29,6 +30,11 @@ class QQAuthUserSerializer(serializers.ModelSerializer):
         }
 
     # 手机号格式，短信验证码是否正确，access_token是否有效
+    # def validate_mobile(self, value):
+    #     if not re.match(r'^1[3-9]\d{9}$', value):
+    #         raise serializers.ValidationError('手机号格式不正确')
+    #
+    #     return value
 
     def validate(self, attrs):
         # access_token是否有效
@@ -59,7 +65,7 @@ class QQAuthUserSerializer(serializers.ModelSerializer):
         if real_sms_code.decode() != sms_code:
             raise serializers.ValidationError('短信验证码错误')
 
-        # 如果mobile已注册，校验对应的密码是否正确
+        # 如果`mobile`已注册，校验对应的密码是否正确
         try:
             user = User.objects.get(mobile=mobile)
         except User.DoesNotExist:
@@ -76,7 +82,7 @@ class QQAuthUserSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        # 如果mobile未注册，先创建一个用户
+        # 如果`mobile`未注册，先创建一个新用户
         user = validated_data['user']
 
         if user is None:
@@ -86,6 +92,9 @@ class QQAuthUserSerializer(serializers.ModelSerializer):
             username = base64.b64encode(os.urandom(9)).decode()
             user = User.objects.create_user(username=username, password=password, mobile=mobile)
 
+        # 给类视图的对象增加属性user，保存绑定用户对象
+        self.context['view'].user = user
+
         # 保存QQ绑定的数据
         openid = validated_data['openid']
         OAuthQQUser.objects.create(
@@ -93,7 +102,7 @@ class QQAuthUserSerializer(serializers.ModelSerializer):
             openid=openid
         )
 
-        # 由服务器生成一个jwt token, 保存用户身份信息
+        # 由服务器生成一个jwt token，保存用户身份信息
         from rest_framework_jwt.settings import api_settings
 
         # 生成payload的方法

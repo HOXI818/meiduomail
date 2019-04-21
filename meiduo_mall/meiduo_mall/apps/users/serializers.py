@@ -117,7 +117,7 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserDetialSerializer(serializers.ModelSerializer):
+class UserDetailSerializer(serializers.ModelSerializer):
     """用户序列化器类"""
     class Meta:
         model = User
@@ -185,6 +185,7 @@ class AddressSerializer(serializers.ModelSerializer):
         # 调用ModelSerializer中create方法
         addr = super().create(validated_data)
         return addr
+
 
 class AddressTitleSerializer(serializers.ModelSerializer):
     class Meta:

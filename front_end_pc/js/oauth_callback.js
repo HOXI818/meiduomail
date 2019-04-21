@@ -19,10 +19,12 @@ var vm = new Vue({
         access_token: ''
     },
     mounted: function(){
-        // 从路径中获取qq重定向返回的code
+        // 访问获取QQ登录用户的openid并处理API
         var code = this.get_query_string('code');
         axios.get(this.host + '/oauth/qq/user/?code=' + code, {
                 responseType: 'json',
+                // 让浏览器进行跨域请求时携带cookie
+                withCredentials: true
             })
             .then(response => {
                 if (response.data.user_id){
@@ -32,7 +34,7 @@ var vm = new Vue({
                     localStorage.user_id = response.data.user_id;
                     localStorage.username = response.data.username;
                     localStorage.token = response.data.token;
-                    // 登录成功之后要访问的地址
+                    // 获取用户登录成功之后要访问的页面地址
                     var state = this.get_query_string('state');
                     location.href = state;
                 } else {
@@ -136,15 +138,18 @@ var vm = new Vue({
             this.check_phone();
             this.check_sms_code();
 
+            // 访问保存QQ登录绑定数据API
             if(this.error_password == false && this.error_phone == false && this.error_sms_code == false) {
                 axios.post(this.host + '/oauth/qq/user/', {
-                    password: this.password,
-                    mobile: this.mobile,
-                    sms_code: this.sms_code,
-                    access_token: this.access_token
-                }, {
-                    responseType: 'json',
-                })
+                        password: this.password,
+                        mobile: this.mobile,
+                        sms_code: this.sms_code,
+                        access_token: this.access_token
+                    }, {
+                        responseType: 'json',
+                        // 让浏览器进行跨域请求时携带cookie
+                        withCredentials: true
+                    })
                     .then(response => {
                         // 记录用户登录状态
                         sessionStorage.clear();
@@ -154,7 +159,7 @@ var vm = new Vue({
                         localStorage.username = response.data.username;
                         location.href = this.get_query_string('state');
                     })
-                    .catch(error => {
+                    .catch(error=> {
                         if (error.response.status == 400) {
                             this.error_sms_code_message = error.response.data.message;
                             this.error_sms_code = true;
@@ -163,6 +168,7 @@ var vm = new Vue({
                         }
                     })
             }
+
         }
     }
 });
